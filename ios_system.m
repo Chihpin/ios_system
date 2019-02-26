@@ -515,14 +515,14 @@ static __thread FILE* child_stdin = NULL;
 static __thread FILE* child_stdout = NULL;
 static __thread FILE* child_stderr = NULL;
 
-FILE* ios_popen(const char* inputCmd, const char* type) {
+void ios_popen2(const char* inputCmd, const char* type, FILE **output) {
     // Save existing streams:
     int fd[2] = {0};
     const char* command = inputCmd;
     // skip past all spaces
     while ((command[0] == ' ') && strlen(command) > 0) command++;
     // TODO: skip past "/bin/sh -c" and "sh -c"
-    if (pipe(fd) < 0) { return NULL; } // Nothing we can do if pipe fails
+    if (pipe(fd) < 0) { return; } // Nothing we can do if pipe fails
     // NOTES: fd[0] is set up for reading, fd[1] is set up for writing
     // fpout = fdopen(fd[1], "w");
     // fpin = fdopen(fd[0], "r");
@@ -530,18 +530,25 @@ FILE* ios_popen(const char* inputCmd, const char* type) {
         // open pipe for reading
         child_stdin = fdopen(fd[0], "r");
         // launch command:
+        *output = fdopen(fd[1], "w");
         ios_system(command);
-        return fdopen(fd[1], "w");
     } else if (type[0] == 'r') {
         // open pipe for writing
         // set up streams for thread
         child_stdout = fdopen(fd[1], "w");
         // launch command:
+        *output = fdopen(fd[0], "r");
         ios_system(command);
-        return fdopen(fd[0], "r");
     }
-    return NULL;
+    //    return NULL;
 }
+
+FILE* ios_popen(const char* inputCmd, const char* type) {
+    FILE* output = NULL;
+    ios_popen2(inputCmd, type, &output);
+    return output;
+}
+
 
 // small function, behaves like strstr but skips quotes (Yury Korolev)
 char *strstrquoted(char* str1, char* str2) {

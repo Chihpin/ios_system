@@ -26,6 +26,7 @@ extern bool sideLoading;
 extern int ios_executable(const char* inputCmd); // does this command exist? (executable file or builtin command)
 extern int ios_system(const char* inputCmd); // execute this command (executable file or builtin command)
 extern FILE *ios_popen(const char *command, const char *type); // Execute this command and pipe the result
+extern void ios_popen2(const char* inputCmd, const char* type, FILE **stdout_stream);
 extern int ios_kill(void); // kill the current running command
 extern int ios_isatty(int fd); // test whether a file descriptor refers to a terminal
 extern const pthread_t ios_getLastThreadId(void);
